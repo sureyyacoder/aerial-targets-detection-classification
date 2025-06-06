@@ -31,6 +31,7 @@ desktop.ini
 
 # ❗️Model çıktı dosyaları
 *.onnx
+*.pt
 *.engine
 runs/
 
