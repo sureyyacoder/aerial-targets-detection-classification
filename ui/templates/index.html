@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video/Object Detection</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #e0f2ff;
+            color: #333;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #0b5394;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            color: #1a73e8;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            background-color: #1a73e8;
+            margin-bottom: 30px;
+        }
+
+        form {
+            margin-bottom: 30px;
+        }
+
+        label.choose-file-btn {
+            background-color: #1a73e8;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+            button:hover {
+                background-color: #155ec4;
+            }
+
+        .result-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+            .result-card img {
+                max-width: 100%;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+                margin-top: 10px;
+            }
+
+        .confidence {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .time-label {
+            font-size: 16px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 📌 Proje Başlığı -->
+    <h1>Classification and Detection for Aerial Targets</h1>
+    <hr>
+
+    <h2>Upload a Video or Image</h2>
+
+    <!-- 📁 Yükleme Formu -->
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="realFile" class="choose-file-btn">Choose File</label>
+        <input type="file" name="file" id="realFile" required />
+        <span id="file-name" style="margin-left:10px;">No file selected</span>
+        <button type="submit">Analyze</button>
+    </form>
+
+    <!-- 📊 Sonuçlar -->
+    <h3>Results:</h3>
+    <div id="resultContainer"></div>
+
+    <!-- 📜 JavaScript -->
+    <script>
+        // Dosya adı güncelle
+        document.getElementById("realFile").addEventListener("change", function () {
+            const fileNameSpan = document.getElementById("file-name");
+            fileNameSpan.textContent = this.files[0] ? this.files[0].name : "No file selected";
+        });
+
+        // Form gönderimi
+        document.getElementById('uploadForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.innerHTML = "Analyzing...";
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            resultContainer.innerHTML = "";
+
+            result.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "result-card";
+
+                const time = document.createElement("div");
+                time.className = "time-label";
+                time.textContent = `${item.time} - ${item.object}`;
+
+                const conf = document.createElement("div");
+                conf.className = "confidence";
+                conf.textContent = `Confidence: ${(item.confidence * 100).toFixed(2)}%`;
+
+                card.appendChild(time);
+                card.appendChild(conf);
+
+                if (item.image_path && item.image_path !== "") {
+                    const img = document.createElement("img");
+                    img.src = `/${item.image_path}`;
+                    img.alt = item.object;
+                    card.appendChild(img);
+                }
+
+                resultContainer.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
